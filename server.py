@@ -1,18 +1,30 @@
 import socket
-import csv
 
-# Input of tree depth
-# Timeout
-# Time tbd
-# Sample data to send
-data = [
-    ["Name", "Age", "City"],
-    ["Alice", "30", "New York"],
-    ["Bob", "25", "Los Angeles"],
-    ["Charlie", "35", "Chicago"],
+# Test Data
+data = data = [
+    ['Age', 'Income', 'Student', 'Credit_Rating', 'BuyComputer'],
+    ['Young', 'High', 'No', 'Fair', 'No'],
+    ['Young', 'High', 'No', 'Excellent', 'No'],
+    ['Young', 'Medium', 'No', 'Fair', 'Yes'],
+    ['Young', 'Low', 'Yes', 'Fair', 'Yes'],
+    ['Young', 'Low', 'Yes', 'Excellent', 'No'],
+    ['Middle', 'Low', 'Yes', 'Excellent', 'Yes'],
+    ['Middle', 'High', 'No', 'Fair', 'Yes'],
+    ['Middle', 'Low', 'Yes', 'Excellent', 'Yes'],
+    ['Middle', 'High', 'Yes', 'Excellent', 'Yes'],
+    ['Middle', 'Medium', 'Yes', 'Fair', 'Yes'],
+    ['Old', 'Medium', 'Yes', 'Fair', 'Yes'],
+    ['Old', 'Medium', 'No', 'Fair', 'Yes'],
+    ['Old', 'Medium', 'No', 'Excellent', 'Yes'],
+    ['Old', 'High', 'Yes', 'Excellent', 'No'],
 ]
+
+def send_data(client_socket, data_to_send):
+    csv_data = "\n".join([",".join(row) for row in data_to_send])
+    client_socket.sendall(csv_data.encode())
+
 # Create a socket object
-s = socket.socket()
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 # Define the server's IP address and port
 server_ip = '10.0.0.2'
@@ -26,25 +38,25 @@ s.listen(5)
 
 print("Server is listening on {}:{}".format(server_ip, port))
 
+def receive_tree(client_socket):
+    received_data = client_socket.recv(4096).decode()
+    return received_data.split("\n")
+
+# (The part where the server waits for a connection)
+
 while True:
     # Accept a connection from a client
     c, addr = s.accept()
     print("Got connection from {}".format(addr))
 
-    # Convert the data to a CSV-formatted string
-    csv_data = "\n".join([",".join(row) for row in data])
+    # Send the test data to the client
+    send_data(c, data)
 
-    # Send the CSV data to the client
-    c.sendall(csv_data.encode())
+    # Receive the serialized tree from the client
+    serialized_tree = receive_tree(c)
 
-    # Receive data from the client
-    client_data = c.recv(4096).decode()
-
-    # Print the list of names received
-    names = client_data.split(',')
-    print("Here are the Names:")
-    for name in names:
-        print(name)
+    print("Serialized Tree received:")
+    print(serialized_tree)
 
     # Close the connection
     c.close()
